@@ -1,43 +1,12 @@
-// Simple PWA service worker for Angelo's Gladiator Tracker
-const CACHE_NAME = 'gladiator-v1-' + (self.crypto?.randomUUID?.() || Date.now());
-const APP_SHELL = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icons/192.png',
-  './icons/512.png'
-];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k => !k.startsWith(CACHE_NAME)).map(k => caches.delete(k)));
-    await self.clients.claim();
-  })());
-});
-
-// Cache-first for same-origin GET requests; network-only for others
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  const url = new URL(req.url);
-
-  if (req.method !== 'GET') return;
-  if (url.origin === location.origin) {
-    event.respondWith(
-      caches.match(req).then(cached => {
-        if (cached) return cached;
-        return fetch(req).then(resp => {
-          const copy = resp.clone();
-          caches.open(CACHE_NAME).then(c => c.put(req, copy));
-          return resp;
-        }).catch(() => caches.match('./index.html'));
-      })
-    );
+const VERSION = 'gt-v2-' + (self.crypto?.randomUUID?.() || Date.now());
+const APP_SHELL = ['./','./index.html','./manifest.json','./icons/192.png','./icons/512.png','./icons/1024.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{
+  const r=e.request; if(r.method!=='GET') return;
+  const u=new URL(r.url);
+  if(u.origin===location.origin){
+    e.respondWith(caches.match(r).then(c=>c||fetch(r).then(resp=>{const cp=resp.clone(); caches.open(VERSION).then(C=>C.put(r,cp)); return resp}).catch(()=>r.mode==='navigate'?caches.match('./index.html'):Promise.reject())));
   }
 });

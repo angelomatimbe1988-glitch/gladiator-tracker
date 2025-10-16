@@ -1,351 +1,44 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Angelo – Gladiator 4‑Wochen Tracker</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gladiator Tracker</title>
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="icons/192.png">
-  <meta name="theme-color" content="#111111"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/180.png">
   <style>
-    :root { --bg:#0e0f12; --card:#171921; --muted:#9aa0a6; --acc:#4ade80; --danger:#ef4444; --warn:#f59e0b; --text:#e5e7eb; }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;}
-    body{margin:0;background:var(--bg);color:var(--text);}
-    header{position:sticky;top:0;background:linear-gradient(0deg, rgba(14,15,18,0.6), var(--bg));backdrop-filter:blur(6px);z-index:5;border-bottom:1px solid #222;}
-    .wrap{max-width:900px;margin:0 auto;padding:14px;}
-    h1{font-size:22px;margin:8px 0;}
-    .card{background:var(--card);border:1px solid #232633;border-radius:12px;padding:14px;margin-top:12px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .row>label{min-width:120px;color:var(--muted);}
-    input[type="number"], input[type="text"], input[type="date"], textarea {width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3d;background:#0f1117;color:var(--text);}
-    input[type="checkbox"]{width:20px;height:20px;accent-color:var(--acc);}
-    button{padding:10px 14px;border-radius:10px;border:1px solid #2b2f3d;background:#0f1117;color:var(--text);cursor:pointer}
-    button.primary{background:var(--acc);border-color:#2c7a4e;color:#052e13;font-weight:600}
-    button.ghost{background:transparent}
-    .tiny{font-size:12px;color:var(--muted)}
-    .table{width:100%;border-collapse:collapse}
-    .table th,.table td{border-bottom:1px solid #2b2f3d;padding:10px;text-align:left}
-    .pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#0f1117;border:1px solid #2b2f3d;color:var(--muted);font-size:12px}
-    nav{position:fixed;bottom:0;left:0;right:0;background:#0f1117;border-top:1px solid #232633;display:flex;z-index:10}
-    nav button{flex:1;border:0;border-right:1px solid #232633;background:transparent;color:var(--text);padding:12px}
-    nav button.active{background:#151823}
-    .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .kpi div{background:#0f1117;border:1px solid #232633;border-radius:10px;padding:10px;text-align:center}
-    .kpi b{font-size:18px}
-    .progress{height:16px;background:#0f1117;border:1px solid #2b2f3d;border-radius:999px;overflow:hidden}
-    .bar{height:100%;width:0%;background:#ef4444;transition:width .3s ease, background .3s ease}
-    .legend{display:flex;gap:8px;align-items:center}
-    .dot{width:10px;height:10px;border-radius:50%}
-    .dot.red{background:#ef4444}.dot.yellow{background:#f59e0b}.dot.green{background:#22c55e}
-    .footer-space{height:70px}
+    html,body{background:#0a0a0a;color:#f3f3f3;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:0}
+    .wrap{max-width:900px;margin:24px auto;padding:16px}
+    .card{background:#121212;border:1px solid #1f1f1f;border-radius:14px;padding:16px}
+    .muted{color:#aaa}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:#e11d48;border:0;color:#fff;font-weight:600;text-decoration:none}
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <h1>🏛️ Angelo – Gladiator 4‑Wochen Tracker</h1>
-      <div class="tiny">Offline nutzbar • Daten bleiben lokal. Vorbefüllt mit deinen Ziel‑Makros (2300 kcal / 160 P / 200 C / 65 F).</div>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <section id="dashboard" class="card">
-      <div class="row">
-        <label>Ziel Makros (täglich)</label>
-        <input id="goalCalories" type="number" placeholder="Kalorien" value="2300">
-        <input id="goalProtein"  type="number" placeholder="Protein g" value="160">
-        <input id="goalCarbs"    type="number" placeholder="Kohlenhydrate g" value="200">
-        <input id="goalFat"      type="number" placeholder="Fett g" value="65">
-        <button class="primary" onclick="saveGoals()">Ziele speichern</button>
-        <button class="ghost" onclick="resetAll()">Alles zurücksetzen</button>
-      </div>
-
-      <h3 style="margin:10px 0 6px">Fortschritt Gesamt</h3>
-      <div class="progress"><div id="progressBar" class="bar"></div></div>
-      <div class="tiny" id="progressText">0% abgeschlossen</div>
-      <div class="legend tiny" style="margin-top:6px">
-        <span class="dot red"></span> 0–49% •
-        <span class="dot yellow"></span> 50–89% •
-        <span class="dot green"></span> 90–100%
-      </div>
-
-      <div class="kpi" id="kpiBar" style="margin-top:12px"></div>
-      <div class="tiny" style="margin-top:8px">Neu: URL‑Eingang für Apple Kurzbefehle (siehe „Import“).</div>
-    </section>
-
-    <section id="plan" class="card">
-      <h2>🗓️ Plan – Häkchen & Notizen</h2>
-      <table class="table" id="planTable">
-        <thead>
-          <tr><th>Woche</th><th>Tag</th><th>Einheit</th><th>Erledigt</th><th>Notiz</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <section id="macros" class="card">
-      <h2>🍽️ Täglicher Makro‑Tracker</h2>
-      <div class="tiny">Einträge pro Tag hinzufügen. Summen vergleichen mit Ziel‑Makros.</div>
-      <div class="row" style="margin-top:8px">
-        <input id="macroDate" type="date">
-        <input id="mCalories" type="number" placeholder="kcal">
-        <input id="mProtein" type="number" placeholder="Protein g">
-        <input id="mCarbs" type="number" placeholder="Carbs g">
-        <input id="mFat" type="number" placeholder="Fett g">
-        <button class="primary" onclick="addMacro()">Hinzufügen</button>
-      </div>
-      <table class="table" id="macroTable">
-        <thead><tr><th>Datum</th><th>kcal</th><th>Protein</th><th>Carbs</th><th>Fett</th><th>Aktion</th></tr></thead>
-        <tbody></tbody>
-        <tfoot><tr><th>Summe</th><th id="sumKcal">0</th><th id="sumProt">0</th><th id="sumCarb">0</th><th id="sumFat">0</th><th></th></tr></tfoot>
-      </table>
-    </section>
-
-    <section id="measure" class="card">
-      <h2>📏 Wochen‑Messungen</h2>
-      <div class="tiny">1×/Woche nüchtern eintragen (So).</div>
-      <div class="row" style="margin-top:8px">
-        <select id="weekSel"></select>
-        <input id="mWeight" type="number" step="0.01" placeholder="Gewicht kg">
-        <input id="mBf" type="number" step="0.1" placeholder="Körperfett %">
-        <input id="mMuscle" type="number" step="0.1" placeholder="Muskelmasse kg/%">
-        <input id="mDeadHang" type="number" step="1" placeholder="Dead Hang s">
-        <input id="mPullups" type="number" step="1" placeholder="Pull-ups (30 s)">
-        <input id="mUpdowns" type="number" step="1" placeholder="Up-downs (30 s)">
-        <input id="mShuttle" type="number" step="0.1" placeholder="Shuttle 10×15 yd (s)">
-        <button class="primary" onclick="saveMeasure()">Speichern</button>
-      </div>
-      <table class="table" id="measureTable">
-        <thead><tr><th>Woche</th><th>Gewicht</th><th>KFA %</th><th>Muskel</th><th>DeadHang s</th><th>Pull-ups</th><th>Up-downs</th><th>Shuttle s</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <section id="import" class="card">
-      <h2>🔗 Import / Apple Kurzbefehle</h2>
-      <div class="tiny">
-        Native Apple Watch/Health‑Synchronisation ist für Web‑Apps nicht erlaubt. 
-        Lösung: iOS <b>Kurzbefehle</b> senden automatisch Daten an diese App (URL‑Parameter).
-      </div>
-      <ol class="tiny">
-        <li><b>Makros loggen:</b> <code>?log=macro&d=YYYY-MM-DD&kcal=2300&p=160&c=200&f=65</code></li>
-        <li><b>Messungen loggen:</b> <code>?log=measure&w=1&weight=68.4&bf=23&muscle=50&deadhang=60&pullups=8&updowns=12&shuttle=38.2</code></li>
-        <li><b>Workout abhaken:</b> <code>?log=workout&w=1&day=Mo&done=1&note=Watch%20Training%20fertig</code></li>
-      </ol>
-      <textarea id="bulkJson" rows="6" placeholder='Oder JSON hier einfügen, z. B. {"macros":[{"d":"2025-10-15","kcal":2300,"p":160,"c":200,"f":65}]}'></textarea>
-      <div class="row"><button class="primary" onclick="importJSON()">JSON importieren</button></div>
-    </section>
-
-    <div class="footer-space"></div>
-  </main>
-
-  <nav>
-    <button id="tabDash" class="active" onclick="showTab('dashboard')">Dashboard</button>
-    <button onclick="showTab('plan')">Plan</button>
-    <button onclick="showTab('macros')">Makros</button>
-    <button onclick="showTab('measure')">Messungen</button>
-    <button onclick="showTab('import')">Import</button>
-  </nav>
-
+<div class="wrap">
+  <h1>Gladiator Tracker</h1>
+  <p class="muted">Offline-PWA mit URL-Logging: <code>?log=macro|measure|workout</code></p>
+  <div class="card">
+    <p>Beispiel: <code>?log=workout&w=1&day=Mo&done=1&note=Fertig</code></p>
+    <a class="btn" href="?log=workout&w=1&day=Mo&done=1&note=Training">Testlog</a>
+  </div>
+</div>
 <script>
-const KEY = "gladiatorTracker_personal_v2";
-const state = JSON.parse(localStorage.getItem(KEY) || "{}");
-function persist(){ localStorage.setItem(KEY, JSON.stringify(state)); updateKPI(); updateProgress(); }
-
-// ---------- Goals ----------
-function saveGoals(){
-  state.goals = {
-    calories: +document.getElementById('goalCalories').value || 0,
-    protein: +document.getElementById('goalProtein').value || 0,
-    carbs: +document.getElementById('goalCarbs').value || 0,
-    fat: +document.getElementById('goalFat').value || 0,
-  };
-  persist(); alert('Ziele gespeichert');
-}
-
-// ---------- Plan ----------
-const WEEKS = {
-  1: ["Mo: Lower Power + Speed","Di: Upper Pull / Grip","Mi: Conditioning Intervals","Do: Upper Push + Core","Fr: Agility / Balance + Power‑Game Basics","Sa: Ruhetag (aktiv / komplett)","So: Ruhetag (aktiv / komplett)"],
-  2: ["Mo: Lower + Speed (mehr Volumen)","Di: Pull/Grip + Grip‑Block","Mi: Tempo‑Läufe / Intervalle","Do: Upper Push + Core","Fr: Agility/Balance + Contact Drills","Sa: Ruhetag (aktiv / komplett)","So: Ruhetag (aktiv / komplett)"],
-  3: ["Mo: Speed + Power Carries Complex","Di: Upper Push/Pull Supersets + Core","Mi: Conditioning Benchmark","Do: Core & Grip / Contact Drill","Fr: Simulierter Power‑Games / Kraft","Sa: Ruhetag (aktiv / komplett)","So: Ruhetag (aktiv / komplett)"],
-  4: ["Mo: Peak Power (Sprints, Box Jumps, Carries)","Di: Aktive Erholung / Technik / Mobility","Mi: MOCK TRYOUT / Retest","Do: Kraft & Grip (kurz)","Fr: Aktive Erholung / Mobility","Sa: Ruhetag (komplett)","So: Technik / leichtes Tanzen / locker"]
-};
-const TAGS = ["Mo","Di","Mi","Do","Fr","Sa","So"];
-
-function buildPlan(){
-  if(!state.plan) state.plan = {};
-  const tbody = document.querySelector('#planTable tbody'); tbody.innerHTML = "";
-  for(let w=1; w<=4; w++){
-    for(let i=0;i<7;i++){
-      const label = WEEKS[w][i];
-      const id = `W${w}_D${i+1}`;
-      const row = state.plan[id] || {done:false, note:"", label};
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${w}</td>
-        <td>${TAGS[i]}</td>
-        <td><span class="pill">${row.label}</span></td>
-        <td><input type="checkbox" ${row.done?'checked':''} onchange="toggleDone('${id}', this.checked)"></td>
-        <td><input class="note" type="text" value="${row.note||''}" oninput="saveNote('${id}', this.value)" placeholder="Notiz..."></td>`;
-      tbody.appendChild(tr);
-      state.plan[id] = row;
-    }
+  const url = new URL(window.location.href);
+  const params = Object.fromEntries(url.searchParams.entries());
+  if (params.log) {
+    const key = 'gt-logs';
+    const all = JSON.parse(localStorage.getItem(key) || '[]');
+    all.push({ts: new Date().toISOString(), ...params});
+    localStorage.setItem(key, JSON.stringify(all));
+    history.replaceState({}, document.title, window.location.pathname);
   }
-  persist();
-}
-function toggleDone(id, v){ state.plan[id].done = v; persist(); }
-function saveNote(id, t){ state.plan[id].note = t; persist(); }
-
-// ---------- Progress ----------
-function updateProgress(){
-  // total items = 28 Trainings-/Ruhetage
-  const ids = Object.keys(state.plan||{});
-  const total = 28;
-  const done = ids.filter(k=>state.plan[k].done).length;
-  const pct = Math.round((done/total)*100) || 0;
-  const bar = document.getElementById('progressBar');
-  bar.style.width = pct+'%';
-  // color
-  bar.style.background = pct<50 ? '#ef4444' : (pct<90 ? '#f59e0b' : '#22c55e');
-  document.getElementById('progressText').textContent = pct + '% abgeschlossen';
-}
-
-// ---------- Macros ----------
-function addMacro(){
-  const d = document.getElementById('macroDate').value || new Date().toISOString().slice(0,10);
-  const kcal = +document.getElementById('mCalories').value || 0;
-  const p = +document.getElementById('mProtein').value || 0;
-  const c = +document.getElementById('mCarbs').value || 0;
-  const f = +document.getElementById('mFat').value || 0;
-  if(!state.macros) state.macros = [];
-  state.macros.push({d,kcal,p,c,f});
-  persist(); renderMacros();
-  ['mCalories','mProtein','mCarbs','mFat'].forEach(id=>document.getElementById(id).value="");
-}
-function delMacro(idx){ state.macros.splice(idx,1); persist(); renderMacros(); }
-function renderMacros(){
-  const tb = document.querySelector('#macroTable tbody'); tb.innerHTML = "";
-  let sumK=0,sumP=0,sumC=0,sumF=0;
-  (state.macros||[]).forEach((m,idx)=>{
-    sumK+=m.kcal; sumP+=m.p; sumC+=m.c; sumF+=m.f;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${m.d}</td><td>${m.kcal}</td><td>${m.p}</td><td>${m.c}</td><td>${m.f}</td>
-                    <td><button onclick="delMacro(${idx})">Löschen</button></td>`;
-    tb.appendChild(tr);
-  });
-  document.getElementById('sumKcal').textContent = sumK;
-  document.getElementById('sumProt').textContent = sumP;
-  document.getElementById('sumCarb').textContent = sumC;
-  document.getElementById('sumFat').textContent  = sumF;
-}
-
-// ---------- Measures ----------
-function buildWeekSelector(){
-  const sel = document.getElementById('weekSel'); sel.innerHTML = "";
-  for(let w=1; w<=4; w++){ const opt = document.createElement('option'); opt.value=w; opt.textContent="Woche "+w; sel.appendChild(opt); }
-}
-function saveMeasure(){
-  const w = +document.getElementById('weekSel').value;
-  if(!state.measures) state.measures = {};
-  state.measures[w] = {
-    weight:+document.getElementById('mWeight').value||null,
-    bf:+document.getElementById('mBf').value||null,
-    muscle:+document.getElementById('mMuscle').value||null,
-    deadhang:+document.getElementById('mDeadHang').value||null,
-    pullups:+document.getElementById('mPullups').value||null,
-    updowns:+document.getElementById('mUpdowns').value||null,
-    shuttle:+document.getElementById('mShuttle').value||null,
-  };
-  persist(); renderMeasures();
-}
-function renderMeasures(){
-  const tb = document.querySelector('#measureTable tbody'); tb.innerHTML = "";
-  for(let w=1; w<=4; w++){
-    const m = (state.measures||{})[w] || {};
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${w}</td>
-      <td>${m.weight??""}</td><td>${m.bf??""}</td><td>${m.muscle??""}</td>
-      <td>${m.deadhang??""}</td><td>${m.pullups??""}</td><td>${m.updowns??""}</td><td>${m.shuttle??""}</td>`;
-    tb.appendChild(tr);
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
   }
-}
-
-// ---------- KPI (today macros) ----------
-function updateKPI(){
-  const k = document.getElementById('kpiBar');
-  const goals = state.goals || {calories:2300, protein:160, carbs:200, fat:65};
-  const today = new Date().toISOString().slice(0,10);
-  const todays = (state.macros||[]).filter(x=>x.d===today);
-  const sum = todays.reduce((a,m)=>({k:a.k+m.kcal,p:a.p+m.p,c:a.c+m.c,f:a.f+m.f}),{k:0,p:0,c:0,f:0});
-  const pct = (v,goal)=>goal?Math.round(v/goal*100):0;
-  k.innerHTML = `
-    <div><div class="tiny">kcal heute</div><b>${sum.k}</b><div class="tiny">${pct(sum.k,goals.calories)}% von ${goals.calories}</div></div>
-    <div><div class="tiny">Protein</div><b>${sum.p} g</b><div class="tiny">${pct(sum.p,goals.protein)}% von ${goals.protein}</div></div>
-    <div><div class="tiny">Carbs</div><b>${sum.c} g</b><div class="tiny">${pct(sum.c,goals.carbs)}% von ${goals.carbs}</div></div>
-    <div><div class="tiny">Fett</div><b>${sum.f} g</b><div class="tiny">${pct(sum.f,goals.fat)}% von ${goals.fat}</div></div>`;
-}
-
-// ---------- Import ----------
-function importJSON(){
-  try{
-    const txt = document.getElementById('bulkJson').value.trim();
-    if(!txt) return;
-    const data = JSON.parse(txt);
-    if(data.macros){ state.macros = (state.macros||[]).concat(data.macros); }
-    if(data.measures){ state.measures = Object.assign(state.measures||{}, data.measures); }
-    if(data.workouts){
-      (data.workouts||[]).forEach(w=>{
-        const id = `W${w.w}_D${w.d}`; if(!state.plan[id]) state.plan[id]={done:false,note:'',label:`W${w.w}/D${w.d}`};
-        state.plan[id].done = !!w.done; if(w.note) state.plan[id].note = w.note;
-      });
-    }
-    persist(); renderMacros(); renderMeasures(); buildPlan();
-    alert('Import erfolgreich');
-  } catch(e){
-    alert('Import fehlgeschlagen: '+e.message);
-  }
-}
-
-// ---------- URL parameter logging ----------
-function getParams(){
-  const p={}; const q=location.search.substring(1).split('&'); 
-  q.forEach(kv=>{ if(!kv) return; const [k,v]=kv.split('='); p[decodeURIComponent(k)] = decodeURIComponent(v||''); });
-  return p;
-}
-function handleURL(){
-  const p=getParams(); if(!p.log) return;
-  if(p.log==='macro'){
-    if(!state.macros) state.macros = [];
-    state.macros.push({d:p.d||new Date().toISOString().slice(0,10), kcal:+p.kcal||0, p:+p.p||0, c:+p.c||0, f:+p.f||0});
-    persist();
-  } else if(p.log==='measure'){
-    const w=+p.w||1; if(!state.measures) state.measures={};
-    state.measures[w]={weight:+p.weight||null,bf:+p.bf||null,muscle:+p.muscle||null,deadhang:+p.deadhang||null,pullups:+p.pullups||null,updowns:+p.updowns||null,shuttle:+p.shuttle||null};
-    persist();
-  } else if(p.log==='workout'){
-    const w=+p.w||1; const dayStr=p.day||'Mo'; const map={'Mo':1,'Di':2,'Mi':3,'Do':4,'Fr':5,'Sa':6,'So':7};
-    const d=map[dayStr]||1; const id=`W${w}_D${d}`; if(!state.plan[id]) state.plan[id]={done:false,note:'',label:'Training'};
-    state.plan[id].done = (+p.done)===1; if(p.note) state.plan[id].note = p.note; persist();
-  }
-}
-
-// ---------- Tabs / Reset / PWA ----------
-function showTab(id){
-  ['dashboard','plan','macros','measure','import'].forEach(sec=>{
-    document.getElementById(sec).style.display = (sec===id)?'block':'none';
-  });
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-}
-function resetAll(){ if(confirm('Alle gespeicherten Daten löschen?')){ localStorage.removeItem(KEY); location.reload(); } }
-
-if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
-
-// init
-(function init(){
-  if(!state.goals) state.goals = {calories:2300, protein:160, carbs:200, fat:65};
-  buildPlan(); renderMacros(); buildWeekSelector(); renderMeasures(); showTab('dashboard'); updateKPI(); updateProgress(); handleURL();
-})();
 </script>
 </body>
 </html>

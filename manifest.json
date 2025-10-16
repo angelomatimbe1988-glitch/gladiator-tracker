@@ -1,11 +1,12 @@
 {
-  "name": "Angelo – Gladiator 4‑Wochen Tracker",
-  "short_name": "Gladiator Tracker",
+  "name": "Gladiator Tracker",
+  "short_name": "Gladiator",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "theme_color": "#0a0d12",
-  "background_color": "#0a0d12",
+  "description": "Train like a Gladiator. Offline PWA with quick logging via Shortcuts.",
+  "theme_color": "#000000",
+  "background_color": "#000000",
   "icons": [
     {
       "src": "icons/192.png",
@@ -16,6 +17,12 @@
     {
       "src": "icons/512.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/1024.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
     }
