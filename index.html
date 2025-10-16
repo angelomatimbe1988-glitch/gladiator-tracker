@@ -26,11 +26,25 @@
   
   <div class="card">
     <p>Beispiel: <code>?log=workout&w=1&day=Mo&done=1&note=Fertig</code></p>
-    <a class="btn" href="?log=workout&w=1&day=Mo&done=1&note=Training">Testlog</a>
+  <a class="btn" id="testlog">Testlog</a>
   </div>
 </div>
 <script>
-  const url = new URL(window.location.href);
+  // --- Testlog-Button: sichere Navigation, auch als PWA ---
+const testBtn = document.getElementById('testlog');
+if (testBtn) {
+  testBtn.addEventListener('click', () => {
+    const qp = new URLSearchParams({
+      log: 'workout',
+      w: 1,
+      day: 'Mo',
+      done: 1,
+      e: 'Fertig'
+    });
+    // Absoluter Pfad -> funktioniert auch aus Homescreen
+    location.href = `${location.origin}${location.pathname}?${qp.toString()}`;
+  });
+}
   // --- Service Worker Reset Fix ---
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(registrations) {
