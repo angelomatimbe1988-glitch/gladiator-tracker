@@ -31,6 +31,17 @@
 </div>
 <script>
   const url = new URL(window.location.href);
+  // --- Service Worker Reset Fix ---
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for (let registration of registrations) {
+      registration.unregister();
+    }
+    caches.keys().then(function(names) {
+      for (let name of names) caches.delete(name);
+    });
+  });
+}
   const params = Object.fromEntries(url.searchParams.entries());
   if (params.log) {
     const key = 'gt-logs';
